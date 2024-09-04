@@ -1,13 +1,12 @@
-# Configure the AWS Provider
-
-variable "aws_region" {
-  default = "us-east-1"
-}
-
 provider "aws" {
   region = var.aws_region
 }
 
+# Variables
+
+variable "aws_region" {
+  default = "us-east-1"
+}
 
 variable "ecr_repository_name" {
   default = "my-app-repo"
@@ -21,26 +20,26 @@ variable "task_family" {
   default = "my-app-task"
 }
 
-# Creating thr repo for storing the docker image
+# Creating the ecr repo for the deploying the docker file
 
 resource "aws_ecr_repository" "main" {
   name = var.ecr_repository_name
 }
 
-# Creating the cluster for the deployment of the application
+# Creating the cluster for the deployment 
 
 resource "aws_ecs_cluster" "main" {
   name = var.cluster_name
 }
 
-# Define the task 
+#  ecs task 
 
 resource "aws_ecs_task_definition" "main" {
-  family                = var.task_family
-  network_mode          = "awsvpc"
+  family                   = var.task_family
+  network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                   = "1000"
-  memory                = "1024"
+  cpu                      = "1000"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
@@ -48,9 +47,23 @@ resource "aws_ecs_task_definition" "main" {
       image     = "${aws_ecr_repository.main.repository_url}:latest",
       portMappings = [
         {
-          containerPort = 80,
-          hostPort      = 80,
+          containerPort = 9000, 
+          hostPort      = 9000,
           protocol      = "tcp"
+        }
+      ],
+      environment = [
+        {
+          name  = "DATABASE_URL"
+          value = "postgres://postgres:postgres@postgres:5432/medusa-docker"
+        },
+        {
+          name  = "NODE_ENV"
+          value = "production"
+        },
+        {
+          name  = "STORE_CORS"
+          value = "http://localhost"
         }
       ],
       essential = true
@@ -58,7 +71,8 @@ resource "aws_ecs_task_definition" "main" {
   ])
 }
 
-# ECS Service
+# Create an ECS Service
+
 resource "aws_ecs_service" "main" {
   name            = "my-app-service"
   cluster         = aws_ecs_cluster.main.id
@@ -75,6 +89,7 @@ resource "aws_ecs_service" "main" {
 }
 
 # Output the ECR Repository URL
+
 output "ecr_repository_url" {
   value = aws_ecr_repository.main.repository_url
 }
