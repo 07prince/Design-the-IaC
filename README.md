@@ -93,4 +93,4 @@ Once the code is pushed, the GitHub Actions workflow should automatically trigge
 
 By following these steps, you will successfully deploy the Medusa backend on AWS ECS/Fargate with a fully automated CD pipeline using GitHub Actions. This setup leverages Terraform for managing infrastructure as code, ensuring a consistent and repeatable deployment process.
 
-# Happy Coding! and thanks to chatgpt for this (:
+# Happy Coding! and thanks to chatgpt for this readme file (:
